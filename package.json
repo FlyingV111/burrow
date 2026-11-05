@@ -1,6 +1,6 @@
 {
   "name": "burrow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Burrow – Mo der Maulwurf gräbt deinen lokalen Dev-Server per ngrok-Tunnel aufs Handy (Electron-Desktop-App)",
   "type": "module",
   "private": true,
