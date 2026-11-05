@@ -2,6 +2,7 @@ import http from 'node:http'
 import { createRequire } from 'node:module'
 
 import { listenOnFreePort } from './free-port.js'
+import { LOOPBACK_HOSTS, createTargetResolver, targetUrl } from './target-host.js'
 
 const require = createRequire(import.meta.url)
 const httpProxy = require('http-proxy')
@@ -50,11 +51,9 @@ export async function createRequestProxy(targetPort) {
     stats.bytesOut += size
   }
 
-  const proxy = httpProxy.createProxyServer({
-    target: `http://127.0.0.1:${targetPort}`,
-    ws: true,
-    xfwd: true,
-  })
+  // Ziel wird pro Anfrage bestimmt (IPv4 oder IPv6), siehe target-host.js.
+  const resolveTargetHost = createTargetResolver(targetPort)
+  const proxy = httpProxy.createProxyServer({ ws: true, xfwd: true })
 
   proxy.on('proxyReq', (_proxyReq, req) => {
     const length = Number(req.headers['content-length'])
@@ -87,22 +86,42 @@ export async function createRequestProxy(targetPort) {
     }
   })
 
-  const server = http.createServer((req, res) => {
+  const noServerMessage =
+    `Burrow: Auf Port ${targetPort} antwortet kein Server ` +
+    `(geprüft: ${LOOPBACK_HOSTS.join(' und ')}). Läuft dein Dev-Server?`
+
+  const server = http.createServer(async (req, res) => {
     stats.requests++
     stats.active++
-    proxy.web(req, res)
+
+    const host = await resolveTargetHost()
+    if (!host) {
+      stats.active = Math.max(0, stats.active - 1)
+      res.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' })
+      res.end(noServerMessage)
+      return
+    }
+
+    proxy.web(req, res, { target: targetUrl(host, targetPort) })
   })
 
-  server.on('upgrade', (req, socket, head) => {
+  server.on('upgrade', async (req, socket, head) => {
     stats.requests++
     stats.active++
+
+    const host = await resolveTargetHost()
+    if (!host) {
+      stats.active = Math.max(0, stats.active - 1)
+      socket.destroy()
+      return
+    }
 
     socket.on('data', (chunk) => trackIncoming(chunk.length))
     socket.on('close', () => {
       stats.active = Math.max(0, stats.active - 1)
     })
 
-    proxy.ws(req, socket, head)
+    proxy.ws(req, socket, head, { target: targetUrl(host, targetPort) })
   })
 
   proxy.on('open', (proxySocket) => {

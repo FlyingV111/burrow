@@ -2,6 +2,13 @@
 
 Alle nennenswerten Änderungen an Burrow. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Behoben
+
+- „Bad Gateway“, wenn der Dev-Server nur auf IPv6 (`::1`) lauscht – typisch für Angular, Vite & Co. unter Windows. Burrow prüft jetzt `127.0.0.1` und `::1` und nimmt die erreichbare Adresse
+- Läuft auf dem Port kein Server, erklärt die Fehlerseite das jetzt, statt nur „Bad Gateway“ zu zeigen
+
 ## [1.1.0] – 2026-11-05
 
 ### Hinzugefügt
