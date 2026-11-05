@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@ngrok/ngrok": "^1.4.1",
-    "express": "^4.21.2",
+    "express": "^5.3.0",
     "http-proxy": "^1.18.1",
     "qrcode": "^1.5.4"
   },
