@@ -1,6 +1,7 @@
 import ngrok from '@ngrok/ngrok'
 import { loadConfig } from './config.js'
 import { parsePort } from './port.js'
+import { parseIpVersion } from './target-host.js'
 import { createRequestProxy } from './proxy.js'
 
 /** @type {import('@ngrok/ngrok').Listener | null} */
@@ -9,18 +10,19 @@ let activeListener = null
 /** @type {Awaited<ReturnType<typeof createRequestProxy>> | null} */
 let requestProxy = null
 
-/** @type {{ url: string, port: number, startedAt: string } | null} */
+/** @type {{ url: string, port: number, ipVersion: 'auto' | '4' | '6', startedAt: string } | null} */
 let tunnelState = null
 
 export function getTunnelStatus() {
   if (!activeListener || !tunnelState) {
-    return { active: false, url: null, port: null, startedAt: null }
+    return { active: false, url: null, port: null, ipVersion: null, startedAt: null }
   }
 
   return {
     active: true,
     url: tunnelState.url,
     port: tunnelState.port,
+    ipVersion: tunnelState.ipVersion,
     startedAt: tunnelState.startedAt,
   }
 }
@@ -38,7 +40,7 @@ export function getTrafficStats() {
   )
 }
 
-export async function startTunnel(port) {
+export async function startTunnel(port, ipVersion) {
   if (activeListener) {
     throw new Error('Es läuft bereits ein Tunnel. Stoppe ihn zuerst.')
   }
@@ -51,12 +53,20 @@ export async function startTunnel(port) {
   const hasPort = port !== undefined && port !== null && String(port).trim() !== ''
   const targetPort = hasPort ? parsePort(port) : config.defaultPort
 
-  requestProxy = await createRequestProxy(targetPort)
+  const hasIp = ipVersion !== undefined && ipVersion !== null && String(ipVersion).trim() !== ''
+  const version = hasIp ? parseIpVersion(ipVersion) : config.ipVersion
 
-  activeListener = await ngrok.forward({
-    addr: requestProxy.port,
-    authtoken: config.authtoken,
-  })
+  requestProxy = await createRequestProxy(targetPort, { ipVersion: version })
+
+  try {
+    activeListener = await ngrok.forward({
+      addr: requestProxy.port,
+      authtoken: config.authtoken,
+    })
+  } catch (error) {
+    await stopTunnel()
+    throw error
+  }
 
   const url = activeListener.url()
   if (!url) {
@@ -67,6 +77,7 @@ export async function startTunnel(port) {
   tunnelState = {
     url,
     port: targetPort,
+    ipVersion: version,
     startedAt: new Date().toISOString(),
   }
 

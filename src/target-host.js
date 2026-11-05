@@ -7,6 +7,31 @@ import net from 'node:net'
  */
 export const LOOPBACK_HOSTS = Object.freeze(['127.0.0.1', '::1'])
 
+export const IP_VERSIONS = Object.freeze(['auto', '4', '6'])
+
+/**
+ * Wahl des Nutzers: "auto" (beide Adressen prüfen), "4" (nur 127.0.0.1) oder "6" (nur ::1).
+ * @param {unknown} value
+ * @returns {'auto' | '4' | '6'}
+ */
+export function parseIpVersion(value) {
+  const text = String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/^ipv/, '')
+  if (!IP_VERSIONS.includes(text)) {
+    throw new Error('Ungültige Adress-Auswahl – erlaubt sind Automatisch, IPv4 und IPv6.')
+  }
+  return /** @type {'auto' | '4' | '6'} */ (text)
+}
+
+/** @param {'auto' | '4' | '6'} ipVersion */
+export function hostsFor(ipVersion) {
+  if (ipVersion === '4') return [LOOPBACK_HOSTS[0]]
+  if (ipVersion === '6') return [LOOPBACK_HOSTS[1]]
+  return LOOPBACK_HOSTS
+}
+
 /**
  * @param {string} host
  * @param {number} port

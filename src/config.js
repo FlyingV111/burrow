@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { IP_VERSIONS } from './target-host.js'
 
 /**
  * Einstellungen + Authtoken.
@@ -18,6 +19,7 @@ const TOKEN_FORMAT = 1
 const DEFAULT_CONFIG = Object.freeze({
   defaultPort: 3000,
   checkUpdates: true,
+  ipVersion: 'auto',
 })
 
 /**
@@ -136,12 +138,13 @@ export function loadConfig() {
       : DEFAULT_CONFIG.defaultPort,
     checkUpdates:
       typeof stored.checkUpdates === 'boolean' ? stored.checkUpdates : DEFAULT_CONFIG.checkUpdates,
+    ipVersion: IP_VERSIONS.includes(stored.ipVersion) ? stored.ipVersion : DEFAULT_CONFIG.ipVersion,
     authtoken,
   }
 }
 
 /**
- * @param {{ authtoken?: string, defaultPort?: number, checkUpdates?: boolean }} partial
+ * @param {{ authtoken?: string, defaultPort?: number, checkUpdates?: boolean, ipVersion?: 'auto' | '4' | '6' }} partial
  * @returns {{ persisted: boolean }} persisted=false: Token nur im Speicher gehalten
  */
 export function saveConfig(partial) {
@@ -152,6 +155,7 @@ export function saveConfig(partial) {
       : DEFAULT_CONFIG.defaultPort,
     checkUpdates:
       typeof stored.checkUpdates === 'boolean' ? stored.checkUpdates : DEFAULT_CONFIG.checkUpdates,
+    ipVersion: IP_VERSIONS.includes(stored.ipVersion) ? stored.ipVersion : DEFAULT_CONFIG.ipVersion,
   }
   if (stored.authtoken && typeof stored.authtoken === 'object') next.authtoken = stored.authtoken
 
@@ -159,6 +163,7 @@ export function saveConfig(partial) {
 
   if (partial.defaultPort !== undefined) next.defaultPort = partial.defaultPort
   if (partial.checkUpdates !== undefined) next.checkUpdates = partial.checkUpdates
+  if (partial.ipVersion !== undefined) next.ipVersion = partial.ipVersion
 
   if (partial.authtoken !== undefined) {
     if (canEncrypt()) {

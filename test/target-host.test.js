@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import http from 'node:http'
 import { createRequestProxy } from '../src/proxy.js'
-import { createTargetResolver, targetUrl } from '../src/target-host.js'
+import { createTargetResolver, hostsFor, parseIpVersion, targetUrl } from '../src/target-host.js'
 
 test('IPv6-Adressen bekommen eckige Klammern in der URL', () => {
   assert.equal(targetUrl('127.0.0.1', 4200), 'http://127.0.0.1:4200')
@@ -93,5 +93,47 @@ test('Proxy erklärt verständlich, wenn kein Server läuft', async () => {
     assert.match(response.body, /Dev-Server/)
   } finally {
     await proxy.close()
+  }
+})
+
+test('IP-Auswahl wird geprüft und auf Loopback-Hosts abgebildet', () => {
+  assert.equal(parseIpVersion('auto'), 'auto')
+  assert.equal(parseIpVersion('4'), '4')
+  assert.equal(parseIpVersion('IPv6'), '6')
+  for (const bad of ['5', 'ipv', '', 'beides', undefined]) {
+    assert.throws(() => parseIpVersion(bad), /Adress-Auswahl/, String(bad))
+  }
+
+  assert.deepEqual(hostsFor('auto'), ['127.0.0.1', '::1'])
+  assert.deepEqual(hostsFor('4'), ['127.0.0.1'])
+  assert.deepEqual(hostsFor('6'), ['::1'])
+})
+
+test('Proxy hält sich an die gewählte IP-Version', async (t) => {
+  const origin = http.createServer((_req, res) => res.end('nur ipv6'))
+  const listening = await new Promise((resolve) => {
+    origin.once('error', () => resolve(false))
+    origin.listen(0, '::1', () => resolve(true))
+  })
+  if (!listening) return t.skip('IPv6-Loopback auf diesem System nicht verfügbar')
+  const targetPort = origin.address().port
+
+  try {
+    for (const [ipVersion, expectedStatus] of [
+      ['auto', 200],
+      ['6', 200],
+      ['4', 502], // erzwungenes IPv4 findet den IPv6-Server bewusst nicht
+    ]) {
+      const proxy = await createRequestProxy(targetPort, { ipVersion })
+      try {
+        const response = await get(proxy.port)
+        assert.equal(response.status, expectedStatus, `ipVersion=${ipVersion}`)
+        if (expectedStatus === 502) assert.match(response.body, /geprüft: 127\.0\.0\.1\)/)
+      } finally {
+        await proxy.close()
+      }
+    }
+  } finally {
+    origin.close()
   }
 })

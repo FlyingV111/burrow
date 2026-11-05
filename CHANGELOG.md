@@ -2,6 +2,20 @@
 
 Alle nennenswerten Änderungen an Burrow. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Hinzugefügt
+
+- Auswahl der Adresse des Dev-Servers: **Automatisch** (IPv4 oder IPv6), nur **IPv4** (`127.0.0.1`) oder nur **IPv6** (`::1`) – entspricht `ngrok http http://[::1]:4200`. Die Wahl wird gemerkt und bei aktivem Tunnel im Status angezeigt
+
+### Geändert
+
+- Einstellungs-Symbol ist jetzt ein Zahnrad statt eines Sonnen-Symbols
+
+### Behoben
+
+- Schlägt der Start bei ngrok fehl, wird der bereits gestartete interne Proxy wieder sauber beendet
+
 ## [1.1.1] – 2026-11-05
 
 ### Behoben

@@ -8,6 +8,7 @@ const settingsPortInput = $('#settings-port')
 const settingsUpdates = $('#settings-updates')
 const settingsVersion = $('#settings-version')
 const updatePill = $('#update-pill')
+const ipSelect = $('#ip-version')
 const startBtn = $('#start-btn')
 const stopBtn = $('#stop-btn')
 const homeView = $('#home-view')
@@ -55,6 +56,9 @@ function clearDirty(input) {
 
 trackUserInput(targetPortInput)
 trackUserInput(settingsPortInput)
+ipSelect.addEventListener('change', () => {
+  ipSelect.dataset.dirty = '1'
+})
 
 function truncateUrl(url, max = 44) {
   if (url.length <= max) return url
@@ -176,7 +180,7 @@ function renderUpdate({ version, checkUpdates, update }) {
 }
 
 function updateUI(data) {
-  const { configured, defaultPort, tunnel } = data
+  const { configured, defaultPort, ipVersion, tunnel } = data
 
   renderUpdate(data)
 
@@ -185,16 +189,22 @@ function updateUI(data) {
     syncPortInput(settingsPortInput, defaultPort)
   }
 
+  if (ipVersion !== undefined && !ipSelect.dataset.dirty && document.activeElement !== ipSelect) {
+    ipSelect.value = ipVersion
+  }
+
   if (configured) {
     setupSection.classList.add('hidden')
     settingsBtn.classList.remove('hidden')
     startBtn.disabled = tunnel.active
     targetPortInput.disabled = tunnel.active
+    ipSelect.disabled = tunnel.active
   } else {
     setupSection.classList.remove('hidden')
     settingsBtn.classList.add('hidden')
     startBtn.disabled = true
     targetPortInput.disabled = false
+    ipSelect.disabled = false
     closeSettings()
     setBadge('setup', 'Token fehlt')
   }
@@ -207,7 +217,8 @@ function updateUI(data) {
     qrImage.src = `/api/qrcode?t=${Date.now()}`
     setTunnelUrl(tunnel.url)
     stopBtn.disabled = false
-    setBadge('active', `Live · :${tunnel.port}`)
+    const via = tunnel.ipVersion && tunnel.ipVersion !== 'auto' ? ` · IPv${tunnel.ipVersion}` : ''
+    setBadge('active', `Live · :${tunnel.port}${via}`)
     refreshStats()
     return
   }
@@ -320,13 +331,14 @@ startBtn.addEventListener('click', async () => {
   const res = await fetch('/api/tunnel/start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ port: targetPortInput.value }),
+    body: JSON.stringify({ port: targetPortInput.value, ipVersion: ipSelect.value }),
   })
 
   const data = await res.json()
   startBtn.textContent = 'Starten'
 
   if (res.ok) {
+    clearDirty(ipSelect)
     showToast('Tunnel läuft')
     updateUI({ configured: true, tunnel: data })
   } else {

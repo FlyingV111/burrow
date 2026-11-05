@@ -27,16 +27,17 @@ Burrow ist eine winzige Desktop-App, die genau das tut: Sie öffnet per [ngrok](
 
 ## Features
 
-|     |                                                                                                                                              |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 📱  | **Ein Klick zum Handy** – öffentliche HTTPS-URL plus QR-Code zum Scannen                                                                     |
-| 📊  | **Live-Statistik** – Anfragen, Datenmenge und aktive Verbindungen als Sparklines                                                             |
-| ⌨️  | **Port-Feld ohne Bevormundung** – tippe, was du willst; geprüft wird erst beim Start, mit klarer Meldung statt stiller Korrektur             |
-| 🔐  | **Token sicher gespeichert** – verschlüsselt mit dem Schlüsselspeicher deines Betriebssystems                                                |
-| 🎲  | **Eigene Ports, die nie stören** – Burrow wählt seine Ports selbst im privaten Bereich (49152–65535) und meidet 3000, 5173, 8080, 4040 & Co. |
-| 🔔  | **Update-Hinweis** – erkennt automatisch, wenn es ein neues Release gibt, und zeigt es dezent in der Titelleiste an                          |
-| 🏠  | **Komplett lokal** – die Oberfläche ist nur über `127.0.0.1` erreichbar                                                                      |
-| 🪶  | **Klein und ruhig** – ein festes 420×500-Fenster, dunkel, ohne Schnickschnack                                                                |
+|     |                                                                                                                                                      |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📱  | **Ein Klick zum Handy** – öffentliche HTTPS-URL plus QR-Code zum Scannen                                                                             |
+| 📊  | **Live-Statistik** – Anfragen, Datenmenge und aktive Verbindungen als Sparklines                                                                     |
+| ⌨️  | **Port-Feld ohne Bevormundung** – tippe, was du willst; geprüft wird erst beim Start, mit klarer Meldung statt stiller Korrektur                     |
+| 🔐  | **Token sicher gespeichert** – verschlüsselt mit dem Schlüsselspeicher deines Betriebssystems                                                        |
+| 🌐  | **IPv4 oder IPv6 – du entscheidest** – Dev-Server nur auf `::1` (Angular, Vite)? Burrow findet ihn automatisch, oder du erzwingst die Adresse selbst |
+| 🎲  | **Eigene Ports, die nie stören** – Burrow wählt seine Ports selbst im privaten Bereich (49152–65535) und meidet 3000, 5173, 8080, 4040 & Co.         |
+| 🔔  | **Update-Hinweis** – erkennt automatisch, wenn es ein neues Release gibt, und zeigt es dezent in der Titelleiste an                                  |
+| 🏠  | **Komplett lokal** – die Oberfläche ist nur über `127.0.0.1` erreichbar                                                                              |
+| 🪶  | **Klein und ruhig** – ein festes 420×500-Fenster, dunkel, ohne Schnickschnack                                                                        |
 
 ## So funktioniert es
 
@@ -114,9 +115,11 @@ Weil es dich nicht bevormunden soll. Das Feld bleibt, wie du es getippt hast; er
 </details>
 
 <details>
-<summary><b>Der Tunnel startet, aber die Seite zeigt „Bad Gateway“.</b></summary>
+<summary><b>Der Tunnel startet, aber die Seite zeigt „Bad Gateway“ bzw. „Burrow: Auf Port … antwortet kein Server“.</b></summary>
 
 Dein Dev-Server läuft nicht auf dem angegebenen Port. Starte ihn zuerst und prüfe, ob er unter `http://localhost:<port>` erreichbar ist.
+
+Viele Dev-Server (Angular, Vite …) lauschen unter Windows nur auf IPv6 (`::1`) statt auf IPv4 (`127.0.0.1`). Burrow prüft im Modus **Automatisch** beide Adressen. Mit der Auswahl **IP** kannst du sie auch festlegen – IPv6 entspricht dem ngrok-Befehl `ngrok http http://[::1]:4200`.
 
 </details>
 

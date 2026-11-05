@@ -39,6 +39,14 @@ test('Status enthält Version und Update-Einstellung, aber kein Update ohne Prü
   assert.equal(status.update.available, false)
 })
 
+test('Status liefert die IP-Auswahl, Start lehnt Ungültiges ab', async () => {
+  const status = await (await fetch(`${base}/api/status`)).json()
+  assert.equal(status.ipVersion, 'auto')
+  const res = await post('/api/tunnel/start', { port: '4200', ipVersion: 'ipv5' })
+  assert.equal(res.status, 400)
+  assert.match((await res.json()).error, /Adress-Auswahl|Authtoken/)
+})
+
 test('Update-Einstellung lässt sich ausschalten und nimmt nur Booleans an', async () => {
   assert.equal((await post('/api/config', { checkUpdates: 'ja' })).status, 400)
   assert.equal((await post('/api/config', { checkUpdates: false })).status, 200)

@@ -2,15 +2,18 @@ import http from 'node:http'
 import { createRequire } from 'node:module'
 
 import { listenOnFreePort } from './free-port.js'
-import { LOOPBACK_HOSTS, createTargetResolver, targetUrl } from './target-host.js'
+import { createTargetResolver, hostsFor, targetUrl } from './target-host.js'
 
 const require = createRequire(import.meta.url)
 const httpProxy = require('http-proxy')
 
 const HISTORY_SIZE = 40
 
-/** @param {number} targetPort */
-export async function createRequestProxy(targetPort) {
+/**
+ * @param {number} targetPort
+ * @param {{ ipVersion?: 'auto' | '4' | '6' }} [options]
+ */
+export async function createRequestProxy(targetPort, { ipVersion = 'auto' } = {}) {
   const stats = {
     requests: 0,
     responses: 0,
@@ -52,7 +55,8 @@ export async function createRequestProxy(targetPort) {
   }
 
   // Ziel wird pro Anfrage bestimmt (IPv4 oder IPv6), siehe target-host.js.
-  const resolveTargetHost = createTargetResolver(targetPort)
+  const hosts = hostsFor(ipVersion)
+  const resolveTargetHost = createTargetResolver(targetPort, { hosts })
   const proxy = httpProxy.createProxyServer({ ws: true, xfwd: true })
 
   proxy.on('proxyReq', (_proxyReq, req) => {
@@ -88,7 +92,7 @@ export async function createRequestProxy(targetPort) {
 
   const noServerMessage =
     `Burrow: Auf Port ${targetPort} antwortet kein Server ` +
-    `(geprüft: ${LOOPBACK_HOSTS.join(' und ')}). Läuft dein Dev-Server?`
+    `(geprüft: ${hosts.join(' und ')}). Läuft dein Dev-Server?`
 
   const server = http.createServer(async (req, res) => {
     stats.requests++

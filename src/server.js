@@ -96,6 +96,7 @@ export function createApp() {
       tunnel: getTunnelStatus(),
       version: currentVersion,
       checkUpdates: config.checkUpdates,
+      ipVersion: config.ipVersion,
       update: config.checkUpdates ? getUpdateState() : null,
     })
   })
@@ -139,7 +140,9 @@ export function createApp() {
 
   app.post('/api/tunnel/start', async (req, res) => {
     try {
-      const status = await startTunnel(req.body?.port)
+      const status = await startTunnel(req.body?.port, req.body?.ipVersion)
+      // Die zuletzt gewählte Adress-Variante wird für den nächsten Start gemerkt.
+      saveConfig({ ipVersion: status.ipVersion })
       res.json(status)
     } catch (error) {
       res.status(400).json({ error: error.message ?? 'Tunnel-Start fehlgeschlagen.' })
