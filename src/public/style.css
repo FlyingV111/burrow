@@ -7,6 +7,7 @@
 }
 
 :root {
+  color-scheme: dark;
   --bg: #0c0c0c;
   --panel: #141414;
   --input: #1a1a1a;
@@ -75,6 +76,42 @@ body {
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--dim);
+}
+
+.update-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--live-dim);
+  border-radius: 999px;
+  color: var(--live);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-decoration: none;
+  -webkit-app-region: no-drag;
+}
+
+.update-pill:hover {
+  background: rgba(134, 239, 172, 0.1);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.check input {
+  accent-color: var(--live-dim);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
 }
 
 .hero {

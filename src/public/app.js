@@ -5,6 +5,9 @@ const configForm = $('#config-form')
 const authtokenInput = $('#authtoken')
 const targetPortInput = $('#target-port')
 const settingsPortInput = $('#settings-port')
+const settingsUpdates = $('#settings-updates')
+const settingsVersion = $('#settings-version')
+const updatePill = $('#update-pill')
 const startBtn = $('#start-btn')
 const stopBtn = $('#stop-btn')
 const homeView = $('#home-view')
@@ -152,8 +155,30 @@ function closeSettings() {
   settingsAuthtokenInput.value = ''
 }
 
+function renderUpdate({ version, checkUpdates, update }) {
+  if (version !== undefined) {
+    settingsVersion.textContent = `Burrow ${version}`
+    // Während die Einstellungen offen sind, nie unter den Fingern des Nutzers überschreiben.
+    if (!settingsOpen) settingsUpdates.checked = checkUpdates !== false
+  }
+
+  // Antworten ohne Update-Info (z. B. nach Start/Stopp) lassen die Anzeige unverändert.
+  if (update === undefined) return
+
+  if (update?.available && update.url) {
+    updatePill.href = update.url
+    updatePill.title = `Version ${update.latest} ist verfügbar (du hast ${update.current})`
+    updatePill.textContent = `Update ${update.latest}`
+    updatePill.classList.remove('hidden')
+  } else {
+    updatePill.classList.add('hidden')
+  }
+}
+
 function updateUI(data) {
   const { configured, defaultPort, tunnel } = data
+
+  renderUpdate(data)
 
   if (defaultPort !== undefined) {
     syncPortInput(targetPortInput, defaultPort)
@@ -261,7 +286,7 @@ settingsForm.addEventListener('submit', async (e) => {
   e.preventDefault()
   const token = settingsAuthtokenInput.value.trim()
 
-  const body = { defaultPort: settingsPortInput.value }
+  const body = { defaultPort: settingsPortInput.value, checkUpdates: settingsUpdates.checked }
   if (token) body.authtoken = token
 
   const result = await saveConfig(body)

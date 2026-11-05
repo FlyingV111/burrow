@@ -14,6 +14,12 @@
 - Strikte Content-Security-Policy, kein Inline-Script, Eingaben werden serverseitig validiert.
 - Das Electron-Fenster läuft mit `sandbox`, `contextIsolation` und ohne Node-Integration; Navigation auf fremde Seiten ist blockiert, externe Links öffnen nur über `https`.
 
+## Netzwerkverbindungen
+
+- **ngrok:** Beim Tunnel baut Burrow eine Verbindung zu ngrok auf (Kernfunktion).
+- **GitHub (Update-Suche):** Burrow ruft beim Start und alle 6 Stunden `api.github.com/repos/FlyingV111/burrow/releases/latest` ab. Es wird nur eine anonyme Abfrage gesendet (inklusive Versionsnummer im User-Agent), kein Token, keine Nutzerdaten. Links aus der Antwort werden nur akzeptiert, wenn sie auf die Release-Seite dieses Repositorys zeigen. Abschaltbar in den Einstellungen oder mit `BURROW_NO_UPDATE_CHECK=1`.
+- Burrow selbst baut keine weiteren Verbindungen auf (das ngrok-SDK verwaltet seine Verbindung zu ngrok selbst).
+
 ## Schwachstelle melden
 
 Bitte **kein öffentliches Issue** für Sicherheitslücken. Nutze stattdessen die private Meldung über den Reiter „Security“ → „Report a vulnerability“ in diesem GitHub-Repository.

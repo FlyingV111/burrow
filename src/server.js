@@ -1,10 +1,13 @@
+import http from 'node:http'
 import express from 'express'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import QRCode from 'qrcode'
 import { isConfigured, loadConfig, saveConfig } from './config.js'
+import { listenOnFreePort } from './free-port.js'
 import { parsePort } from './port.js'
 import { getTunnelStatus, getTrafficStats, startTunnel, stopTunnel } from './tunnel.js'
+import { currentVersion, getUpdateState, startUpdateChecks, stopUpdateChecks } from './update.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -72,6 +75,9 @@ function noStore(_req, res, next) {
   next()
 }
 
+/** Wird von startServer gesetzt: darf die App überhaupt nach Updates fragen? */
+let updateChecksAllowed = false
+
 export function createApp() {
   const app = express()
 
@@ -88,11 +94,14 @@ export function createApp() {
       configured: isConfigured(),
       defaultPort: config.defaultPort,
       tunnel: getTunnelStatus(),
+      version: currentVersion,
+      checkUpdates: config.checkUpdates,
+      update: config.checkUpdates ? getUpdateState() : null,
     })
   })
 
   app.post('/api/config', (req, res) => {
-    const { authtoken, defaultPort } = req.body ?? {}
+    const { authtoken, defaultPort, checkUpdates } = req.body ?? {}
     const update = {}
 
     if (authtoken !== undefined) {
@@ -111,7 +120,20 @@ export function createApp() {
       }
     }
 
+    if (checkUpdates !== undefined) {
+      if (typeof checkUpdates !== 'boolean') {
+        return res.status(400).json({ error: 'Ungültige Einstellung für Update-Suche.' })
+      }
+      update.checkUpdates = checkUpdates
+    }
+
     const { persisted } = saveConfig(update)
+
+    if (update.checkUpdates !== undefined && updateChecksAllowed) {
+      if (update.checkUpdates) startUpdateChecks()
+      else stopUpdateChecks()
+    }
+
     res.json({ ok: true, configured: isConfigured(), persisted })
   })
 
@@ -167,27 +189,38 @@ export function createApp() {
 
 /**
  * Startet die Oberfläche – ausschließlich auf dem Loopback-Interface.
- * @param {{ dynamicPort?: boolean }} [options]
+ * Standardmäßig auf einem zufälligen freien Port (kein typischer Dev-Port);
+ * ein fester Port lässt sich mit `options.port` oder der Umgebungsvariable BURROW_PORT setzen.
+ *
+ * @param {{ port?: number | string, updateChecks?: boolean }} [options]
  */
-export function startServer(options = {}) {
-  const port = options.dynamicPort ? 0 : loadConfig().uiPort
-  const app = createApp()
+export async function startServer(options = {}) {
+  const server = http.createServer(createApp())
+  const requested = options.port ?? process.env.BURROW_PORT
 
-  return new Promise((resolve, reject) => {
-    const server = app.listen(port, LOOPBACK_HOST, () => {
-      const address = server.address()
-      const actualPort = typeof address === 'object' && address ? address.port : port
-      resolve({ port: actualPort, server })
+  let port
+  if (requested !== undefined && String(requested).trim() !== '') {
+    const wanted = parsePort(requested)
+    port = await new Promise((resolve, reject) => {
+      server.once('error', reject)
+      server.listen(wanted, LOOPBACK_HOST, () => resolve(server.address().port))
     })
-    server.on('error', reject)
-  })
+  } else {
+    port = await listenOnFreePort(server, { host: LOOPBACK_HOST })
+  }
+
+  updateChecksAllowed = Boolean(options.updateChecks) && !process.env.BURROW_NO_UPDATE_CHECK
+  if (updateChecksAllowed && loadConfig().checkUpdates) startUpdateChecks()
+  server.on('close', stopUpdateChecks)
+
+  return { port, server }
 }
 
 const isDirectRun =
   process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
 
 if (isDirectRun) {
-  startServer().then(({ port }) => {
+  startServer({ updateChecks: true }).then(({ port }) => {
     console.log(`\n  Burrow läuft auf http://localhost:${port}\n`)
     if (!isConfigured()) {
       console.log('  → Bitte ngrok-Authtoken in der Oberfläche hinterlegen')

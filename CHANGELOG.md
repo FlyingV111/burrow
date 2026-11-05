@@ -2,6 +2,18 @@
 
 Alle nennenswerten Änderungen an Burrow. Format nach [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Hinzugefügt
+
+- Burrow wählt seine eigenen Ports selbst: zufällig und frei im privaten Bereich (49152–65535), nie auf typischen Entwicklungsports und nie auf dem geteilten Ziel-Port
+- Automatische Update-Erkennung über GitHub Releases mit Hinweis „Update x.y.z“ in der Titelleiste; abschaltbar in den Einstellungen
+- Versionsanzeige in den Einstellungen
+
+### Geändert
+
+- Server-Modus (`npm run server`) nutzt nicht mehr fest Port 4040 (der ngrok-Inspector-Port), sondern einen freien Zufallsport; fest vorgebbar mit `BURROW_PORT`
+
 ## [1.0.0] – 2026-11-05
 
 Erste öffentliche Version.

@@ -8,7 +8,7 @@ process.env.BURROW_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'burrow-test-'))
 delete process.env.NGROK_AUTHTOKEN
 
 const { startServer } = await import('../src/server.js')
-const { port, server } = await startServer({ dynamicPort: true })
+const { port, server } = await startServer()
 const base = `http://127.0.0.1:${port}`
 
 const post = (url, body, headers = {}) =>
@@ -25,6 +25,39 @@ test.after(() => {
 
 test('lauscht nur auf dem Loopback-Interface', () => {
   assert.equal(server.address().address, '127.0.0.1')
+})
+
+test('wählt einen freien Port abseits der typischen Dev-Ports', () => {
+  assert.ok(port >= 49152, `Port ${port} liegt nicht im privaten Bereich`)
+  assert.ok(![3000, 4040, 5173, 8080].includes(port))
+})
+
+test('Status enthält Version und Update-Einstellung, aber kein Update ohne Prüfung', async () => {
+  const status = await (await fetch(`${base}/api/status`)).json()
+  assert.match(status.version, /^\d+\.\d+\.\d+/)
+  assert.equal(status.checkUpdates, true)
+  assert.equal(status.update.available, false)
+})
+
+test('Update-Einstellung lässt sich ausschalten und nimmt nur Booleans an', async () => {
+  assert.equal((await post('/api/config', { checkUpdates: 'ja' })).status, 400)
+  assert.equal((await post('/api/config', { checkUpdates: false })).status, 200)
+  const off = await (await fetch(`${base}/api/status`)).json()
+  assert.equal(off.checkUpdates, false)
+  assert.equal(off.update, null)
+  await post('/api/config', { checkUpdates: true })
+})
+
+test('fester Port per Option funktioniert und kollidiert nicht still', async () => {
+  const { port: fixed, server: other } = await startServer({
+    port: port + 1 === 65536 ? port - 1 : port + 1,
+  })
+  try {
+    assert.ok(fixed > 0)
+    await assert.rejects(startServer({ port: fixed }))
+  } finally {
+    other.close()
+  }
 })
 
 test('setzt Sicherheits-Header und liefert nie den Token aus', async () => {

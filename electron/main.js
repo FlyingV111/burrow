@@ -31,7 +31,7 @@ function openExternalSafely(url) {
 }
 
 async function createWindow() {
-  const { port, server } = await startServer({ dynamicPort: true })
+  const { port, server } = await startServer({ updateChecks: true })
   apiServer = server
   const origin = `http://localhost:${port}`
 

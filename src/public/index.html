@@ -12,6 +12,13 @@
         <div class="brand">
           <img src="/mascot.svg" alt="" width="22" height="22" />
           <span class="brand-name">Burrow</span>
+          <a
+            id="update-pill"
+            class="update-pill hidden"
+            href="#"
+            target="_blank"
+            rel="noopener"
+          ></a>
         </div>
         <div class="titlebar-spacer"></div>
         <div class="titlebar-right">
@@ -177,6 +184,11 @@
               autocapitalize="off"
               spellcheck="false"
             />
+            <label class="check">
+              <input type="checkbox" id="settings-updates" />
+              <span>Automatisch nach Updates suchen</span>
+            </label>
+            <p id="settings-version" class="note"></p>
             <button type="submit" class="btn btn--accent">Speichern</button>
           </form>
           <p class="note">

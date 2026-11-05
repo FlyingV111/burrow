@@ -27,14 +27,16 @@ Burrow ist eine winzige Desktop-App, die genau das tut: Sie öffnet per [ngrok](
 
 ## Features
 
-|     |                                                                                                                                  |
-| --- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 📱  | **Ein Klick zum Handy** – öffentliche HTTPS-URL plus QR-Code zum Scannen                                                         |
-| 📊  | **Live-Statistik** – Anfragen, Datenmenge und aktive Verbindungen als Sparklines                                                 |
-| ⌨️  | **Port-Feld ohne Bevormundung** – tippe, was du willst; geprüft wird erst beim Start, mit klarer Meldung statt stiller Korrektur |
-| 🔐  | **Token sicher gespeichert** – verschlüsselt mit dem Schlüsselspeicher deines Betriebssystems                                    |
-| 🏠  | **Komplett lokal** – die Oberfläche ist nur über `127.0.0.1` erreichbar                                                          |
-| 🪶  | **Klein und ruhig** – ein festes 420×500-Fenster, dunkel, ohne Schnickschnack                                                    |
+|     |                                                                                                                                              |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📱  | **Ein Klick zum Handy** – öffentliche HTTPS-URL plus QR-Code zum Scannen                                                                     |
+| 📊  | **Live-Statistik** – Anfragen, Datenmenge und aktive Verbindungen als Sparklines                                                             |
+| ⌨️  | **Port-Feld ohne Bevormundung** – tippe, was du willst; geprüft wird erst beim Start, mit klarer Meldung statt stiller Korrektur             |
+| 🔐  | **Token sicher gespeichert** – verschlüsselt mit dem Schlüsselspeicher deines Betriebssystems                                                |
+| 🎲  | **Eigene Ports, die nie stören** – Burrow wählt seine Ports selbst im privaten Bereich (49152–65535) und meidet 3000, 5173, 8080, 4040 & Co. |
+| 🔔  | **Update-Hinweis** – erkennt automatisch, wenn es ein neues Release gibt, und zeigt es dezent in der Titelleiste an                          |
+| 🏠  | **Komplett lokal** – die Oberfläche ist nur über `127.0.0.1` erreichbar                                                                      |
+| 🪶  | **Klein und ruhig** – ein festes 420×500-Fenster, dunkel, ohne Schnickschnack                                                                |
 
 ## So funktioniert es
 
@@ -82,7 +84,7 @@ npm run build      # Ergebnis in dist/: Burrow-Setup-… und Burrow-Portable-…
 4. **Beenden** – „Tunnel beenden“ schließt den Zugang sofort wieder.
 
 > [!TIP]
-> Ohne Desktop-Fenster geht es auch im Browser: `npm run server` und dann `http://localhost:4040` öffnen. In diesem Modus gibt es keinen Schlüsselspeicher – der Token wird nicht gespeichert. Setze ihn stattdessen als Umgebungsvariable `NGROK_AUTHTOKEN`.
+> Ohne Desktop-Fenster geht es auch im Browser: `npm run server` starten – die Adresse mit dem zufällig gewählten freien Port steht im Terminal (fest vorgeben mit `BURROW_PORT=51234`). In diesem Modus gibt es keinen Schlüsselspeicher – der Token wird nicht gespeichert. Setze ihn stattdessen als Umgebungsvariable `NGROK_AUTHTOKEN`.
 
 ## Sicherheit
 
@@ -119,6 +121,20 @@ Dein Dev-Server läuft nicht auf dem angegebenen Port. Starte ihn zuerst und pr�
 </details>
 
 <details>
+<summary><b>Wie funktioniert die Update-Erkennung?</b></summary>
+
+Burrow fragt beim Start und danach alle 6 Stunden die öffentliche GitHub-Releases-Seite dieses Projekts ab. Gibt es eine neuere Version, erscheint in der Titelleiste „Update x.y.z“ mit Link zur Download-Seite. Es wird **nichts automatisch installiert**, und es werden keine Daten von dir gesendet. Abschalten: Einstellungen → „Automatisch nach Updates suchen“, oder per Umgebungsvariable `BURROW_NO_UPDATE_CHECK=1`.
+
+</details>
+
+<details>
+<summary><b>Welche Ports nutzt Burrow selbst?</b></summary>
+
+Zufällige freie Ports im privaten Bereich 49152–65535 (nur auf `127.0.0.1`), nie einen der typischen Entwicklungsports und nie den Port, den du gerade teilst. Dein Dev-Server bekommt seinen Port also garantiert.
+
+</details>
+
+<details>
 <summary><b>Läuft das auch unter macOS oder Linux?</b></summary>
 
 Der Code ist plattformunabhängig, getestet und als Build vorbereitet ist bisher nur Windows. Mit `npm start` solltest du Burrow überall starten können, wo Electron läuft.
@@ -140,6 +156,8 @@ electron/main.js      Electron-Hauptprozess (Sandbox, Token-Verschlüsselung)
 src/server.js         Express-API: nur Loopback, CSP, Origin-Prüfung
 src/tunnel.js         ngrok-Tunnel starten und stoppen
 src/proxy.js          Zähl-Proxy für die Traffic-Statistik
+src/free-port.js      Zufälliger freier Port abseits üblicher Dev-Ports
+src/update.js         Update-Erkennung über GitHub Releases
 src/port.js           Strikte Port-Validierung
 src/config.js         Einstellungen und verschlüsselter Token
 src/public/           Oberfläche (HTML, CSS, JS, Maskottchen)

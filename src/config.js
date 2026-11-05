@@ -17,7 +17,7 @@ const TOKEN_FORMAT = 1
 
 const DEFAULT_CONFIG = Object.freeze({
   defaultPort: 3000,
-  uiPort: 4040,
+  checkUpdates: true,
 })
 
 /**
@@ -134,13 +134,14 @@ export function loadConfig() {
     defaultPort: Number.isInteger(stored.defaultPort)
       ? stored.defaultPort
       : DEFAULT_CONFIG.defaultPort,
-    uiPort: Number.isInteger(stored.uiPort) ? stored.uiPort : DEFAULT_CONFIG.uiPort,
+    checkUpdates:
+      typeof stored.checkUpdates === 'boolean' ? stored.checkUpdates : DEFAULT_CONFIG.checkUpdates,
     authtoken,
   }
 }
 
 /**
- * @param {{ authtoken?: string, defaultPort?: number }} partial
+ * @param {{ authtoken?: string, defaultPort?: number, checkUpdates?: boolean }} partial
  * @returns {{ persisted: boolean }} persisted=false: Token nur im Speicher gehalten
  */
 export function saveConfig(partial) {
@@ -149,13 +150,15 @@ export function saveConfig(partial) {
     defaultPort: Number.isInteger(stored.defaultPort)
       ? stored.defaultPort
       : DEFAULT_CONFIG.defaultPort,
-    uiPort: Number.isInteger(stored.uiPort) ? stored.uiPort : DEFAULT_CONFIG.uiPort,
+    checkUpdates:
+      typeof stored.checkUpdates === 'boolean' ? stored.checkUpdates : DEFAULT_CONFIG.checkUpdates,
   }
   if (stored.authtoken && typeof stored.authtoken === 'object') next.authtoken = stored.authtoken
 
   let persisted = true
 
   if (partial.defaultPort !== undefined) next.defaultPort = partial.defaultPort
+  if (partial.checkUpdates !== undefined) next.checkUpdates = partial.checkUpdates
 
   if (partial.authtoken !== undefined) {
     if (canEncrypt()) {

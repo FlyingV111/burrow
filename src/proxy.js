@@ -1,13 +1,15 @@
 import http from 'node:http'
 import { createRequire } from 'node:module'
 
+import { listenOnFreePort } from './free-port.js'
+
 const require = createRequire(import.meta.url)
 const httpProxy = require('http-proxy')
 
 const HISTORY_SIZE = 40
 
 /** @param {number} targetPort */
-export function createRequestProxy(targetPort) {
+export async function createRequestProxy(targetPort) {
   const stats = {
     requests: 0,
     responses: 0,
@@ -107,28 +109,31 @@ export function createRequestProxy(targetPort) {
     proxySocket.on('data', (chunk) => trackOutgoing(chunk.length))
   })
 
-  return new Promise((resolve, reject) => {
-    server.listen(0, '127.0.0.1', () => {
-      const address = server.address()
-      const port = typeof address === 'object' && address ? address.port : 0
-      resolve({
-        port,
-        getStats: () => ({
-          ...stats,
-          history: {
-            in: [...history.in],
-            out: [...history.out],
-            active: [...history.active],
-          },
-        }),
-        close: () =>
-          new Promise((closeResolve) => {
-            clearInterval(sampleTimer)
-            server.close(() => closeResolve())
-            proxy.close()
-          }),
-      })
-    })
-    server.on('error', reject)
-  })
+  // Freien Port selbst wählen – nie den Ziel-Port, damit dein Dev-Server ihn noch bekommt.
+  let port
+  try {
+    port = await listenOnFreePort(server, { exclude: [targetPort] })
+  } catch (error) {
+    clearInterval(sampleTimer)
+    proxy.close()
+    throw error
+  }
+
+  return {
+    port,
+    getStats: () => ({
+      ...stats,
+      history: {
+        in: [...history.in],
+        out: [...history.out],
+        active: [...history.active],
+      },
+    }),
+    close: () =>
+      new Promise((closeResolve) => {
+        clearInterval(sampleTimer)
+        server.close(() => closeResolve())
+        proxy.close()
+      }),
+  }
 }
