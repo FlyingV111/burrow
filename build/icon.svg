@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0f1512"/>
+  <circle cx="256" cy="230" r="190" fill="#86efac" opacity="0.07"/>
+  <!-- Erdloch (hinten) -->
+  <ellipse cx="256" cy="392" rx="158" ry="42" fill="#0a0705"/>
+  <!-- Lampenlicht -->
+  <defs><linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#86efac" stop-opacity="0.34"/><stop offset="1" stop-color="#86efac" stop-opacity="0"/></linearGradient></defs>
+  <path d="M236 196 L140 62 L372 62 L276 196 Z" fill="url(#beam)"/>
+  <!-- Kopf -->
+  <circle cx="256" cy="292" r="118" fill="#6e6679"/>
+  <ellipse cx="256" cy="228" rx="86" ry="46" fill="#7d758a" opacity="0.55"/>
+  <!-- Schnauze -->
+  <ellipse cx="256" cy="338" rx="58" ry="44" fill="#8a8297"/>
+  <!-- Sternnase -->
+  <g fill="#f4a6b8">
+    <circle cx="256" cy="320" r="20"/>
+    <circle cx="256" cy="291" r="7"/><circle cx="276" cy="298" r="7"/><circle cx="236" cy="298" r="7"/>
+    <circle cx="287" cy="316" r="7"/><circle cx="225" cy="316" r="7"/>
+    <circle cx="281" cy="338" r="7"/><circle cx="231" cy="338" r="7"/>
+  </g>
+  <!-- Augen -->
+  <circle cx="204" cy="268" r="11" fill="#0c0c0c"/><circle cx="208" cy="264" r="3.6" fill="#fff"/>
+  <circle cx="308" cy="268" r="11" fill="#0c0c0c"/><circle cx="312" cy="264" r="3.6" fill="#fff"/>
+  <!-- Grubenlampe -->
+  <path d="M158 226 Q256 176 354 226" fill="none" stroke="#2c2733" stroke-width="16" stroke-linecap="round"/>
+  <rect x="232" y="176" width="48" height="36" rx="14" fill="#2c2733"/>
+  <circle id="lamp" cx="256" cy="194" r="13" fill="#86efac"/>
+  <!-- Erdhügel (vorne) -->
+  <path d="M60 408 Q96 346 256 352 Q416 346 452 408 Q430 452 256 454 Q82 452 60 408 Z" fill="#4a3626"/>
+  <path d="M96 392 Q150 362 256 366 Q362 362 416 392" fill="none" stroke="#5d4631" stroke-width="10" stroke-linecap="round"/>
+  <!-- Pfoten -->
+  <g fill="#f4a6b8">
+    <ellipse cx="160" cy="376" rx="38" ry="22"/>
+    <ellipse cx="352" cy="376" rx="38" ry="22"/>
+  </g>
+  <g stroke="#c9738a" stroke-width="5" stroke-linecap="round">
+    <path d="M140 366 v-10 M160 362 v-12 M180 366 v-10"/>
+    <path d="M332 366 v-10 M352 362 v-12 M372 366 v-10"/>
+  </g>
+  <!-- Kieselsteine -->
+  <ellipse cx="118" cy="428" rx="14" ry="8" fill="#6b5036"/>
+  <ellipse cx="400" cy="424" rx="11" ry="6" fill="#6b5036"/>
+</svg>

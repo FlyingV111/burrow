@@ -1,0 +1,69 @@
+{
+  "name": "burrow",
+  "version": "1.0.0",
+  "description": "Burrow – Mo der Maulwurf gräbt deinen lokalen Dev-Server per ngrok-Tunnel aufs Handy (Electron-Desktop-App)",
+  "type": "module",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "server": "node src/server.js",
+    "icons": "node scripts/build-icons.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --test",
+    "check": "npm run lint && npm run format:check && npm test",
+    "build": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "dev.burrow.app",
+    "productName": "Burrow",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    }
+  },
+  "dependencies": {
+    "@ngrok/ngrok": "^1.4.1",
+    "express": "^4.21.2",
+    "http-proxy": "^1.18.1",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "FlyingV111",
+  "license": "MIT",
+  "keywords": [
+    "ngrok",
+    "tunnel",
+    "electron",
+    "localhost",
+    "qr-code",
+    "dev-tools"
+  ],
+  "overrides": {
+    "qs": "^6.17.1"
+  }
+}
