@@ -349,15 +349,34 @@ stopBtn.addEventListener('click', async () => {
   }
 })
 
+/** Fallback für Umgebungen, in denen die Clipboard-API gesperrt ist. */
+function copyWithSelection(text) {
+  const field = document.createElement('textarea')
+  field.value = text
+  field.setAttribute('readonly', '')
+  field.className = 'copy-buffer'
+  document.body.append(field)
+  field.select()
+  try {
+    return document.execCommand('copy')
+  } finally {
+    field.remove()
+  }
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return copyWithSelection(text)
+  }
+}
+
 copyBtn.addEventListener('click', async () => {
   const url = tunnelUrl.dataset.url || tunnelUrl.href
   if (!url) return
-  try {
-    await navigator.clipboard.writeText(url)
-    showToast('Kopiert')
-  } catch {
-    showToast('Kopieren fehlgeschlagen')
-  }
+  showToast((await copyText(url)) ? 'Kopiert' : 'Kopieren fehlgeschlagen')
 })
 
 refresh()

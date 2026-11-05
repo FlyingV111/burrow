@@ -2,6 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { app, BrowserWindow, safeStorage, shell } from 'electron'
 import { setSecretCodec } from '../src/config.js'
+import { applySessionSecurity } from './security.js'
 import { startServer } from '../src/server.js'
 import { stopTunnel } from '../src/tunnel.js'
 
@@ -66,9 +67,7 @@ async function createWindow() {
     }
   })
 
-  mainWindow.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) =>
-    callback(false),
-  )
+  applySessionSecurity(mainWindow.webContents.session, origin)
 
   mainWindow.on('closed', () => {
     mainWindow = null
