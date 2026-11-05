@@ -1,0 +1,59 @@
+name: Release
+
+# Wird durch einen Versions-Tag ausgelöst:  git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write # Release anlegen
+  id-token: write # Herkunftsnachweis (Build-Provenance)
+  attestations: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Tag muss zur package.json-Version passen
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} passt nicht zu package.json (${version})"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm run check
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run build
+
+      - name: Prüfsummen erzeugen
+        shell: bash
+        working-directory: dist
+        run: sha256sum Burrow-*.exe > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Herkunftsnachweis erstellen
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/Burrow-*.exe
+
+      - name: GitHub-Release veröffentlichen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/Burrow-Setup-*.exe \
+            dist/Burrow-Portable-*.exe \
+            dist/SHA256SUMS.txt \
+            --title "Burrow ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --notes-file .github/release-notes.md

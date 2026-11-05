@@ -47,7 +47,17 @@ flowchart LR
 
 Zwischen ngrok und deinem Server sitzt ein kleiner Proxy. Er leitet alles unverändert durch (inklusive WebSockets, damit Hot-Reload funktioniert) und zählt nebenbei den Datenverkehr für die Live-Anzeige.
 
-## Installation
+## Download
+
+Die fertige Windows-App gibt es unter **[Releases](https://github.com/FlyingV111/burrow/releases/latest)**:
+
+- **`Burrow-Setup-…-x64.exe`** – Installer mit Desktop-Verknüpfung und Startmenü-Eintrag (empfohlen)
+- **`Burrow-Portable-…-x64.exe`** – ohne Installation, einfach starten
+
+> [!NOTE]
+> Die Dateien sind noch nicht code-signiert, Windows SmartScreen warnt deshalb beim ersten Start („Weitere Informationen → Trotzdem ausführen“). Jedes Release enthält `SHA256SUMS.txt` und einen GitHub-Herkunftsnachweis, mit dem du den Download prüfen kannst: `gh attestation verify <Datei> --repo FlyingV111/burrow`.
+
+## Aus dem Quellcode starten
 
 **Voraussetzungen:** Node.js 18 oder neuer und ein kostenloser [ngrok-Account](https://dashboard.ngrok.com/signup) mit [Authtoken](https://dashboard.ngrok.com/get-started/your-authtoken).
 
@@ -58,10 +68,10 @@ npm install
 npm start
 ```
 
-Eine eigenständige Windows-Datei (portable, ohne Installation) baust du mit:
+Installer und Portable-Version baust du selbst mit:
 
 ```bash
-npm run build      # Ergebnis: dist/Burrow 1.0.0.exe
+npm run build      # Ergebnis in dist/: Burrow-Setup-… und Burrow-Portable-…
 ```
 
 ## Benutzung
@@ -135,6 +145,16 @@ src/config.js         Einstellungen und verschlüsselter Token
 src/public/           Oberfläche (HTML, CSS, JS, Maskottchen)
 test/                 Tests
 ```
+
+## Release veröffentlichen
+
+```bash
+# Version in package.json und CHANGELOG.md anheben, committen, dann:
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+Die GitHub Action baut Installer und Portable-Version, erzeugt Prüfsummen samt Herkunftsnachweis und legt das Release an.
 
 ## Lizenz
 
